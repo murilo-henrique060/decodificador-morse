@@ -72,23 +72,22 @@ class AudioEngine(QThread):
                             self.current_signal += "-"
 
                     else: # O som voltou: processa o sinal como separação entre sinais, letras ou palavras
-                        if duration < self.LETTER_GAP:
-                            pass
-
-                        elif duration >= self.LETTER_GAP and duration < self.WORD_GAP:
+                        if self.LETTER_GAP <= duration < self.WORD_GAP:
                             char = MORSE_DICT.get(self.current_signal, "?")
-                            self.text_str += char
+                            self.text_str += self.last_char
                             self.morse_str += self.current_signal + " "
-                            self.current_signal = ""
-
-                        elif duration >= self.WORD_GAP:
-                            char = MORSE_DICT.get(self.current_signal, "?")
-                            self.text_str += char + " "
-                            self.morse_str += self.current_signal + " / "
                             self.current_signal = ""
 
                     self.last_time = now
                     self.last_state = is_on
+
+                else:
+                    if self.current_signal != "" and (not is_on) and duration >= self.WORD_GAP:
+                        char = MORSE_DICT.get(self.current_signal, "?")
+                        self.text_str += char + " "
+                        self.morse_str += self.current_signal + " / "
+                        self.current_signal = ""
+
             except: continue
 
         stream.stop_stream()
