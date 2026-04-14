@@ -53,6 +53,22 @@ class AudioEngine(QThread):
         self.signal_pushed = False
         self.last_time = time.time()
 
+    def morse_to_text(self, morse_str):
+        message = ""
+
+        words = morse_str.split(" / ")
+        for i, word in enumerate(words):
+            letters = word.split(" ")
+            for letter in letters:
+                if letter == "":
+                    continue
+                message += MORSE_DICT.get(letter, "?")
+
+            if i < len(words) - 1:
+                message += " "
+
+        return message
+
     def push_signal(self): 
         if self.signal_pushed:
             return
@@ -91,7 +107,7 @@ class AudioEngine(QThread):
                         self.push_signal()
 
                 else:
-                    if duration < self.SIGNAL_LETTER_GAP_LIMIT:
+                    if self.morse_str == "" or duration < self.SIGNAL_LETTER_GAP_LIMIT:
                         self.current_signal = ""
                     elif duration < self.LETTER_WORD_GAP_LIMIT:
                         self.current_signal = " "
@@ -139,7 +155,7 @@ class MorseApp(QMainWindow):
             vb.setContentsMargins(0, 0, 0, 0)
             vb.setBorder(pg.mkPen(color='#333', width=1))
             
-            pw.setYRange(y_range[0], y_range[1], padding=0)
+            pw.setYRange(y_range[0], y_range[1])
             pw.setMouseEnabled(x=False, y=False)
             pw.hideButtons()
             pw.setMenuEnabled(False)
@@ -181,7 +197,7 @@ class MorseApp(QMainWindow):
         display_text = self.engine.morse_str + ("" if self.engine.signal_pushed else self.engine.current_signal)
         if self.morse_display.toPlainText() != display_text:
             self.morse_display.setText(display_text)
-            self.text_display.setText(self.engine.text_str)
+            self.text_display.setText(self.engine.morse_to_text(display_text))
             scroll = self.morse_display.verticalScrollBar()
             scroll.setValue(scroll.maximum())
 
