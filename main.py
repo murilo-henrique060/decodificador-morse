@@ -25,11 +25,23 @@ class AudioEngine(QThread):
         self.threshold = 4000
         
         # Configurações de Tempo Morse
-        self.U = 0.06  # Unidade base em segundos (60 ms)
-        self.DASH_LIMIT = self.U * 2    # Limite para diferenciar ponto de traço
-        self.LETTER_GAP = self.U * 3    # Tempo de silêncio para nova letra
-        self.WORD_GAP = self.U * 7      # Tempo de silêncio para nova palavra
+        self.U = 0.6  # Unidade base em segundos (60 ms)
+
+        # Configurações de sinal
+        self.DOT_LENGTH = self.U         # Limite para identificar ponto
+        self.DASH_LENGTH = self.U * 3    # Limite para identificar traço
+
+        self.SIGNAL_GAP_LENGTH = self.U # Tempo de silêncio entre sinais
+        self.LETTER_GAP_LENGTH = self.U * 3    # Tempo de silêncio entre letras
+        self.WORD_GAP_LENGTH = self.U * 7    # Tempo de silêncio entre palavras
+
+        # Configurações de intervalos
+        self.DOT_DASH_LIMIT = (self.DOT_LENGTH + self.DASH_LENGTH) / 2
+        self.SIGNAL_LETTER_GAP_LIMIT = (self.SIGNAL_GAP_LENGTH + self.LETTER_GAP_LENGTH) / 2
+        self.LETTER_WORD_GAP_LIMIT = (self.LETTER_GAP_LENGTH + self.WORD_GAP_LENGTH) / 2
         
+
+        # Configurações do buffer
         self.buffer_size = self.rate * 3 # 3 segundos no gráfico
         self.raw_data = np.zeros(self.buffer_size, dtype=np.int16)
         self.clean_data = np.zeros(self.buffer_size, dtype=np.int16)
@@ -38,7 +50,15 @@ class AudioEngine(QThread):
         self.morse_str = ""
         self.text_str = ""
         self.last_state = False
+        self.signal_pushed = False
         self.last_time = time.time()
+
+    def push_signal(self): 
+        if self.signal_pushed:
+            return
+
+        self.morse_str += self.current_signal
+        self.signal_pushed = True
 
     def run(self):
         p = pyaudio.PyAudio()
@@ -62,34 +82,36 @@ class AudioEngine(QThread):
                 now = time.time()
                 duration = now - self.last_time
 
+                
+                if self.last_state: # O som parou: processa o sinal como ponto ou traço
+                    if duration < self.DOT_DASH_LIMIT:
+                        self.current_signal = "."
+                    else:
+                        self.current_signal = "-"
+                        self.push_signal()
+
+                else:
+                    if duration < self.SIGNAL_LETTER_GAP_LIMIT:
+                        self.current_signal = ""
+                    elif duration < self.LETTER_WORD_GAP_LIMIT:
+                        self.current_signal = " "
+                    elif self.morse_str != "":
+                        self.current_signal = " / "
+                        self.push_signal()
+
+
                 # Processando Código Morse
                 if is_on != self.last_state:
-                    if self.last_state: # O som parou: processa o sinal como ponto ou traço
-                        if duration < self.DASH_LIMIT:
-                            self.current_signal += "."
-                        
-                        else:
-                            self.current_signal += "-"
-
-                    else: # O som voltou: processa o sinal como separação entre sinais, letras ou palavras
-                        if duration < self.LETTER_GAP:
-                            pass
-
-                        elif duration >= self.LETTER_GAP and duration < self.WORD_GAP:
-                            char = MORSE_DICT.get(self.current_signal, "?")
-                            self.text_str += char
-                            self.morse_str += self.current_signal + " "
-                            self.current_signal = ""
-
-                        elif duration >= self.WORD_GAP:
-                            char = MORSE_DICT.get(self.current_signal, "?")
-                            self.text_str += char + " "
-                            self.morse_str += self.current_signal + " / "
-                            self.current_signal = ""
+                    self.push_signal()
+                    self.current_signal = ""
+                    self.signal_pushed = False
 
                     self.last_time = now
                     self.last_state = is_on
-            except: continue
+
+            except Exception as e:
+                print(e)
+                continue
 
         stream.stop_stream()
         p.terminate()
@@ -156,7 +178,7 @@ class MorseApp(QMainWindow):
         self.clean_curve.setData(self.engine.clean_data[::16])
         
         # Mostra o sinal em progresso
-        display_text = self.engine.morse_str + self.engine.current_signal
+        display_text = self.engine.morse_str + ("" if self.engine.signal_pushed else self.engine.current_signal)
         if self.morse_display.toPlainText() != display_text:
             self.morse_display.setText(display_text)
             self.text_display.setText(self.engine.text_str)
