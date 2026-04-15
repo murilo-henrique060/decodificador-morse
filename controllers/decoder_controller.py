@@ -4,6 +4,7 @@ from time import perf_counter
 from PySide6.QtCore import QThread
 
 from utils.morse import morse_to_text
+from utils.freq_filter import filter_frequencies
 
 TIME_UNIT = 0.06  # Unidade base em segundos (60 ms)
 
@@ -26,6 +27,7 @@ class DecoderController(QThread):
         self._p = pyaudio.PyAudio()
         
         self._active = active
+        self._filter_frequencies = False
 
         self._stream = None
         self._raw_data = np.ndarray([0], dtype=np.int16)
@@ -170,6 +172,10 @@ class DecoderController(QThread):
 
         try:
             block = np.frombuffer(self._stream.read(self.chunk, exception_on_overflow=False), dtype=np.int16)
+
+            if self._filter_frequencies:
+                block = filter_frequencies(block, self.rate, 400, 480) # Exemplo de filtro entre 400 Hz e 480 Hz
+
             return block
         except Exception as e:
             print(f"Erro ao ler o stream de áudio: {e}")

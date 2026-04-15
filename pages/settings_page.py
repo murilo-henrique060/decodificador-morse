@@ -78,6 +78,6 @@ class SettingsPage(QWidget):
         self.thresholdChanged.emit(value)
 
     def _on_frequency_filter_toggled(self, checked: bool):
-        self._root.pages["decoder"].controller.frequency_filter_enabled = checked
+        self._root.pages["decoder"].controller._filter_frequencies = checked
         self.frequencyFilterToggled.emit(checked)
 
