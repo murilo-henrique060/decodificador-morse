@@ -16,7 +16,7 @@ WORD_GAP = TIME_UNIT * 7    # Tempo de silêncio entre palavras
 
 # Limites para identificar sinais e espaços com base nos tempos
 DOT_DASH_LIMIT = (DOT + DASH) / 2 # Limite para diferenciar ponto de traço (90 ms)
-SIGNAL_LETTER_GAP_LIMIT = (SIGNAL_GAP + LETTER_GAP * 2) / 2 # Limite para diferenciar sinal de letra (180 ms)
+SIGNAL_LETTER_GAP_LIMIT = (SIGNAL_GAP + LETTER_GAP * 1.5) / 2 # Limite para diferenciar sinal de letra (180 ms)
 LETTER_WORD_GAP_LIMIT = (LETTER_GAP + WORD_GAP) / 2 # Limite para diferenciar letra de palavra (240 ms)
 
 class DecoderController(QThread):

@@ -32,7 +32,15 @@ class DecoderPage(QWidget):
         self._layout.addWidget(self.clean_curve)
 
 
-        self._layout.addWidget(QLabel("CÓDIGO MORSE"))
+        rowWidget = QWidget()
+        rowLayout = QHBoxLayout(rowWidget)
+        rowLayout.setContentsMargins(0, 0, 0, 0)
+        rowLayout.addWidget(QLabel("CÓDIGO MORSE"), 1)
+        self.settings_btn = QPushButton("Reiniciar")
+        self.settings_btn.clicked.connect(lambda: self.controller.reset())
+        rowLayout.addWidget(self.settings_btn)
+        self._layout.addWidget(rowWidget)
+
         self.morse_display = QTextEdit()
         self.morse_display.setFixedHeight(60)
         self.morse_display.setReadOnly(True)

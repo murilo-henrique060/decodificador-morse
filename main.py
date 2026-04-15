@@ -2,29 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication, QStackedWidget, QMainWindow
 
 from pages.decoder_page import DecoderPage
-
-# class SettingsPage(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#         self._layout = QVBoxLayout(self)
-        
-#         header = QWidget()
-#         header_layout = QHBoxLayout(header)
-        
-#         title = QLabel("Configurações")
-#         title.setStyleSheet("font-size: 24px; font-weight: bold; color: #4caf50; margin-bottom: 20px")
-#         header_layout.addWidget(title)
-
-#         back_button = QPushButton("Voltar")
-#         def go_back():
-#             parent = self.parentWidget()
-#             if isinstance(parent, QStackedWidget):
-#                 parent.setCurrentIndex(0)
-#         back_button.clicked.connect(go_back)
-#         header_layout.addWidget(back_button)
-#         back_button.setStyleSheet("color: #eee;")
-
-#         self._layout.addWidget(header)
+from pages.settings_page import SettingsPage
 
         
 class MorseApp(QMainWindow):
@@ -39,7 +17,7 @@ class MorseApp(QMainWindow):
 
         self.pages = {
             "decoder": DecoderPage(self),
-            # "settings": SettingsPage(self)
+            "settings": SettingsPage(self),
         }
         self.history = []
 
