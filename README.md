@@ -7,7 +7,7 @@ Decodificador de código morse a partir do microfone em python
 
 O Decodificador é criado baseado nas seguintes regras:
 
-- Um sinal ativo é definido a partir de 4000 (-18.2 dBFS) para os valores brutos de amostra.
+- Um sinal ativo é definido a partir de 6000 para os valores brutos de amostra.
 
 - Uma unidade de tempo tem 60ms
 
